@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket</title>
+  <style>
+    /* Basic Layout and Centering */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f8ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    h1 {
+      color: #2b6777;
+      font-size: 40px;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Container for buttons */
+    .choices {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;  /* Allow wrapping on smaller screens */
+      margin-bottom: 30px;
+    }
+
+    .choice-button {
+      height: 100px;
+      width: 100px;
+      border: none;
+      margin: 10px;
+      background-color: rgb(164, 212, 130);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .choice-button:hover {
+      transform: scale(1.1);
+    }
+
+    .choice-image {
+      height: 75px;
+      width: 75px;
+      border-radius: 50%;
+      padding: 5px;
+    }
+
+    .bat-img {
+      background-color: lightcoral;
+    }
+
+    .ball-img {
+      background-color: lightblue;
+    }
+
+    .stump-img {
+      background-color: lightgreen;
+    }
+
+    h3 {
+      font-size: 18px;
+      margin: 10px 0;
+    }
+
+    #User-move, #computer-move {
+      color: #4682b4;
+    }
+
+    #result {
+      color: #2e8b57;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    #score {
+      background-color: #ffffff;
+      display: inline-block;
+      padding: 15px 30px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      margin-top: 15px;
+      font-size: 18px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      color: #333;
+    }
+
+    /* Reset Button Styles */
+    .reset-button {
+      margin-top: 20px;
+      padding: 12px 24px;
+      border: none;
+      font-size: 16px;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .reset-button:hover {
+      background: linear-gradient(to right, #0072ff, #00c6ff);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transform: scale(1.05);
+    }
+
+    /* Responsive Design */
+    @media screen and (max-width: 450px) {
+      h1 {
+        font-size: 30px;
+      }
+
+      /* Flex Direction Change for smaller screens */
+      .choices {
+        flex-direction: column; /* Align vertically */
+        align-items: center;
+      }
+
+      .choice-button {
+        height: 80px;
+        width: 80px;
+      }
+
+      .choice-image {
+        height: 60px;
+        width: 60px;
+      }
+
+      #score {
+        font-size: 16px;
+        padding: 12px 20px;
+      }
+
+      .reset-button {
+        font-size: 14px;
+        padding: 10px 20px;
+      }
+
+      #User-move, #computer-move, #result {
+        font-size: 18px;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      /* Reduce the size of elements even further on smaller screens */
+      .choices {
+        gap: 15px; /* Reduce space between buttons */
+      }
+
+      .choice-button {
+        height: 70px;
+        width: 70px;
+      }
+
+      .choice-image {
+        height: 50px;
+        width: 50px;
+      }
+
+      #score {
+        font-size: 14px;
+        padding: 10px 15px;
+      }
+
+      .reset-button {
+        font-size: 12px;
+        padding: 8px 15px;
+      }
+
+      #User-move, #computer-move, #result {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>BAT BALL STUMP GAME</h1>
+
+  <div class="choices">
+    <button class="choice-button" onclick="let computerMove = generateComputerChoice(); let resultMsg = getResult('Bat', computerMove); showResult('Bat', computerMove, resultMsg);">
+      <img src="batCricket.jpeg" alt="Bat Image" class="choice-image bat-img">
+    </button>
+
+    <button class="choice-button" onclick="computerMove = generateComputerChoice(); resultMsg = getResult('Ball', computerMove); showResult('Ball', computerMove, resultMsg);">
+      <img src="BallCricket.jpeg" alt="Ball Image" class="choice-image ball-img">
+    </button>
+
+    <button class="choice-button" onclick="computerMove = generateComputerChoice(); resultMsg = getResult('Stump', computerMove); showResult('Stump', computerMove, resultMsg);">
+      <img src="stumpCricket.jpeg" alt="Stump Image" class="choice-image stump-img">
+    </button>
+  </div>
+
+  <h3 id="User-move"></h3>
+  <h3 id="computer-move"></h3>
+  <h3 id="result"></h3>
+
+  <h3 id="score"></h3><br>
+
+  <button class="reset-button" onclick="localStorage.clear(); resetScore();">🔄 Reset Game</button>
+
+  <script>
+    let scoreStr = localStorage.getItem('Score');
+    let score;
+    resetScore(scoreStr);
+
+    function resetScore(scoreStr) {
+      score = scoreStr ? JSON.parse(scoreStr) : {
+        win: 0,
+        lost: 0,
+        tie: 0,
+      };
+
+      score.displayScore = function () {
+        return `🏆 Won: ${score.win} 💔 Lost: ${score.lost} 🤝 Tie: ${score.tie}`;
+      };
+      showResult();
+    }
+
+    function generateComputerChoice() {
+      let randomNumber = Math.random() * 3;
+      if (randomNumber > 0 && randomNumber <= 1) {
+        return 'Bat';
+      } else if (randomNumber > 1 && randomNumber <= 2) {
+        return 'Ball';
+      } else {
+        return 'Stump';
+      }
+    }
+
+    function getResult(userMove, computerMove) {
+      if (userMove === 'Bat') {
+        if (computerMove === 'Ball') {
+          score.win++;
+          return 'User won.';
+        } else if (computerMove === 'Bat') {
+          score.tie++;
+          return `It's a tie`;
+        } else if (computerMove === 'Stump') {
+          score.lost++;
+          return 'Computer has Won';
+        }
+      } else if (userMove === 'Ball') {
+        if (computerMove === 'Ball') {
+          score.tie++;
+          return `It's a tie`;
+        } else if (computerMove === 'Bat') {
+          score.lost++;
+          return 'Computer has Won';
+        } else if (computerMove === 'Stump') {
+          score.win++;
+          return 'User won.';
+        }
+      } else {
+        if (computerMove === 'Ball') {
+          score.lost++;
+          return 'Computer has Won';
+        } else if (computerMove === 'Bat') {
+          score.win++;
+          return 'User won.';
+        } else if (computerMove === 'Stump') {
+          score.tie++;
+          return `It's a tie`;
+        }
+      }
+    }
+
+    function showResult(userMove, computerMove, result) {
+      localStorage.setItem('Score', JSON.stringify(score));
+      document.querySelector('#User-move').innerText =
+        userMove ? `You have chosen: ${userMove}` : '';
+      document.querySelector('#computer-move').innerText =
+        computerMove ? `Computer chose: ${computerMove}` : '';
+      document.querySelector('#result').innerText = result || '';
+      document.querySelector('#score').innerText = score.displayScore();
+    }
+  </script>
+</body>
+</html>
